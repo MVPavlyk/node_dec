@@ -1,9 +1,16 @@
 const {UserService} = require('../services');
+const {hashPassword} = require('../services/password.service');
+const {userPresenter} = require('../presenters/user.presenter');
+
 module.exports = {
     getAll: async (req, res, next) => {
         try {
-            const users = await UserService.findAll();
-            res.json(users);
+            const users = await UserService.findAll(req.query);
+            let usersForResponse = [];
+            for (const user of users) {
+                usersForResponse.push(userPresenter(user));
+            }
+            res.json(usersForResponse);
         } catch (e) {
             next(e);
         }
@@ -13,7 +20,8 @@ module.exports = {
     getOne: async (req, res, next) => {
         try {
             const {user} = req;
-            res.json(user).status(200);
+            const userForResponse = userPresenter(user);
+            res.json(userForResponse).status(200);
         } catch (e) {
             next(e);
         }
@@ -21,7 +29,10 @@ module.exports = {
 
     sendUser: async (req, res, next) => {
         try {
-            const newUser = await UserService.createOne(req.body);
+            const hash = await hashPassword(req.body.password);
+            const user = await UserService.createOne({...req.body, password: hash});
+            const newUser = userPresenter(user);
+
             res.status(201).json(newUser);
 
         } catch (e) {
@@ -45,7 +56,6 @@ module.exports = {
         try {
             const {id} = req.params;
             const updatedUser = await UserService.updateOne({_id: id}, req.body);
-
             res.status(201).json(updatedUser);
         } catch (e) {
             next(e);

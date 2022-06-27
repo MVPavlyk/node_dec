@@ -1,5 +1,7 @@
 const {CustomError} = require('../errors');
 const {UserService} = require('../services');
+const {createUserValidator, updateUserValidator} = require('../validators/user.validator');
+const {queryValidator} = require('../validators/query.validator');
 
 module.exports = {
     isUserPresent: async (req, res, next) => {
@@ -22,51 +24,47 @@ module.exports = {
 
     isUserValid: async (req, res, next) => {
         try {
-            const {name, email, age, password} = req.body;
+            const {error, value} = createUserValidator.validate(req.body)
 
-            if (!age || !Number.isInteger(age) || age < 18) {
-                return next(new CustomError('Age kaka'));
+            if (error) {
+                return next(new CustomError(error.details[0].message));
             }
 
-            if (!name || name.length < 3) {
-                return next(new CustomError('Name kaka'));
-            }
+            req.body = value
 
-            if (!email || !email.includes('@')) {
-                return next(new CustomError('Email kaka'));
-            }
-
-            if (!password || password.length < 6) {
-                return next(new CustomError('Password kaka'));
-            }
             next();
         } catch (e) {
             next(new CustomError('User not valid'));
         }
     },
 
-    isUserValidForUpfate: async (req, res, next) => {
+    isUserValidForUpdate: async (req, res, next) => {
         try {
-            const {name, email, age, password} = req.body;
+            const {error, value} = updateUserValidator.validate(req.body)
 
-            if (age && (!Number.isInteger(age) || age < 18)) {
-                return next(new CustomError('Age kaka'));
+            if (error) {
+                return next(new CustomError(error.details[0].message));
             }
+            req.body = value
 
-            if (name && name.length < 3) {
-                return next(new CustomError('Name kaka'));
-            }
-
-            if (email && !email.includes('@')) {
-                return next(new CustomError('Email kaka'));
-            }
-
-            if (password && password.length < 6) {
-                return next(new CustomError('Password kaka'));
-            }
             next();
         } catch (e) {
             next(new CustomError('User not valid'));
+        }
+    },
+
+    isQueryValid: async (req, res, next) => {
+        try {
+            const {error, value} = queryValidator.validate(req.query)
+
+            if (error) {
+                return next(new CustomError(error.details[0].message));
+            }
+            req.query = value
+
+            next();
+        } catch (e) {
+            next(new CustomError('Query not valid'));
         }
     }
 
