@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const {UserRouter} = require('./routes');
 const {port, dataBase} = require('./config/constants');
+const authRouter = require('./routes/auth.router');
 
 mongoose.connect(dataBase);
 
@@ -10,6 +11,7 @@ app.use(express.json());
 
 
 app.use('/users', UserRouter);
+app.use('/auth', authRouter);
 
 app.use('*', (res) => {
     res.status(404).json('Page not found');

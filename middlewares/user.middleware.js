@@ -24,13 +24,13 @@ module.exports = {
 
     isUserValid: async (req, res, next) => {
         try {
-            const {error, value} = createUserValidator.validate(req.body)
+            const {error, value} = createUserValidator.validate(req.body);
 
             if (error) {
                 return next(new CustomError(error.details[0].message));
             }
 
-            req.body = value
+            req.body = value;
 
             next();
         } catch (e) {
@@ -40,12 +40,12 @@ module.exports = {
 
     isUserValidForUpdate: async (req, res, next) => {
         try {
-            const {error, value} = updateUserValidator.validate(req.body)
+            const {error, value} = updateUserValidator.validate(req.body);
 
             if (error) {
                 return next(new CustomError(error.details[0].message));
             }
-            req.body = value
+            req.body = value;
 
             next();
         } catch (e) {
@@ -55,16 +55,34 @@ module.exports = {
 
     isQueryValid: async (req, res, next) => {
         try {
-            const {error, value} = queryValidator.validate(req.query)
+            const {error, value} = queryValidator.validate(req.query);
 
             if (error) {
                 return next(new CustomError(error.details[0].message));
             }
-            req.query = value
+            req.query = value;
 
             next();
         } catch (e) {
             next(new CustomError('Query not valid'));
+        }
+    },
+
+    isUserExistForAuth: async (req, res, next) => {
+        try {
+            const {email} = req.body;
+
+            const user = await UserService.findOne({email});
+
+            if (!user) {
+                return next(new CustomError('User not found', 404));
+            }
+
+            req.user = user;
+
+            next();
+        } catch (e) {
+            next(new CustomError('User not exist'));
         }
     }
 
